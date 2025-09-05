@@ -8,7 +8,7 @@ mongoose
 	.then((_) => console.log("Connected Mongodb Success"))
 	.catch(() => console.log("Error Connected Mongodb"));
 
-if (1 === 0) {
+if (1 === 1) {
 	mongoose.set("debug", true);
 	mongoose.set("debug", {
 		color: true,

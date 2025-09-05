@@ -1,28 +1,24 @@
+require("dotenv").config();
+
 const express = require("express");
 const app = express();
 const morgan = require("morgan");
 const helmet = require("helmet");
-const compression = require('compression');
+const compression = require("compression");
+const process = require("process");
 
 // init middleware
 app.use(morgan("dev"));
 app.use(helmet());
 app.use(compression());
-
-
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 // init db
-require('./dbs/init.mongodb.lv0');
-
+require("./dbs/init.mongodb");
 
 // init routes
-app.get("/", (req, res, next) => {
-    const message = 'Hello tips javascript';
-
-	return res.status(200).json({
-		message: message.repeat(1000)
-	});
-});
+app.use("", require("./routes"));
 
 // handling errors
 

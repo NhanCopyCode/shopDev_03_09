@@ -4,7 +4,7 @@
 
 POST {{url_dev}}/shop/signup
 Content-Type: application/json
-x-api-key: 7988cb8d1d9d485f793f26846197325364bf9407d42a430f45b67337635e2acb60509a456dcc5fb07bd1113a0301c6ad462fdd93c776580aa8511f445c9748c3
+x-api-key: e767d9200b827f2fe07424544ab7f64e930a0b29e4147b1ed310129ef391f8ed44196211addbd39105ffe9dfffcc6d953476fe44f926565027b1982bca44ce6b
 
 {
     "name": "Shop Nhan",

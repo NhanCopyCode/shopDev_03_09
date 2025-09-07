@@ -6,7 +6,7 @@ const router = express.Router();
 
 // Check apiKey
 router.use(apiKey);
-// Check permission
+// Check permission 
 router.use(permission("0000"));
 
 router.use("/v1/api", require("./access"));

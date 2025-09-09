@@ -4,9 +4,13 @@ const shopModel = require("../models/shop.model");
 const bcrypt = require("bcrypt");
 const crypto = require("crypto");
 const KeyTokenService = require("./keyToken.service");
-const { createTokenPair } = require("../auth/authUtils");
+const { createTokenPair, verifyJWT } = require("../auth/authUtils");
 const { getInfoData } = require("../utils");
-const { BadRequestError, AuthFailureError } = require("../core/error.response");
+const {
+	BadRequestError,
+	AuthFailureError,
+	ForbiddenError,
+} = require("../core/error.response");
 const { findByEmail } = require("./shop.service");
 
 const RoleShop = {
@@ -18,6 +22,74 @@ const RoleShop = {
 
 class AccessService {
 	/*
+		check this token used ?
+	*/
+	static handleRefreshToken = async (refreshToken) => {
+		console.log("refreshToken:", refreshToken);
+
+		// Check if token have been reused ?
+		const foundToken = await KeyTokenService.findByRefreshTokenUsed(
+			refreshToken
+		);
+		// if exist token
+		if (foundToken) {
+			// decode token
+			const { userId, email } = await verifyJWT(
+				refreshToken,
+				foundToken.privateKey
+			);
+			console.log("userId and email : ", userId, email);
+
+			// remove all token in keyStore
+			await KeyTokenService.deleteKeyByUserid(userId);
+
+			throw new ForbiddenError(
+				"Something went wrong! Please, login again"
+			);
+		}
+
+		// if token don't have been reused?
+		const holderToken = await KeyTokenService.findByRefreshToken(
+			refreshToken
+		);
+		console.log("holderToken:", holderToken);
+		if (!holderToken) throw new AuthFailureError("Shop not register!");
+
+		// verify token
+		const { userId, email } = await verifyJWT(
+			refreshToken,
+			holderToken.privateKey
+		);
+		// Check userId
+		const foundShop = await findByEmail({ email });
+		if (!foundShop) throw new AuthFailureError("Shop not register!");
+
+		// create new tokens pair
+		const tokens = await createTokenPair(
+			{ userId, email },
+			holderToken.publicKey,
+			holderToken.privateKey
+		);
+
+		await holderToken.updateOne({
+			$set: {
+				refreshToken: tokens.refreshToken,
+			},
+			$addToSet: {
+				refreshTokenUsed: refreshToken,
+			},
+		});
+
+		return {
+			user: {
+				userId,
+				email,
+			},
+			tokens,
+		};
+	};
+
+	/*
 		1. Check email in dbs
 		2. Match password 
 		3. Create AccessToken and Refresh Token
@@ -26,10 +98,7 @@ class AccessService {
 
 	*/
 	static logout = async (keyStore) => {
-		console.log("keyStore:", keyStore);
-
 		const delKey = await KeyTokenService.removeTokenById(keyStore._id);
-		console.log("delKey:", delKey);
 		return delKey;
 	};
 	static login = async ({ email, password, refreshToken = null }) => {

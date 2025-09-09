@@ -1,10 +1,16 @@
 "use strict";
 
 const { filter } = require("lodash");
+const { Types } = require("mongoose");
 const keyTokenModel = require("../models/keytoken.model");
 
 class KeyTokenService {
-	static createKeyToken = async ({ userId, publicKey, privateKey, refreshToken }) => {
+	static createKeyToken = async ({
+		userId,
+		publicKey,
+		privateKey,
+		refreshToken,
+	}) => {
 		try {
 			// lv0
 			// const token = await keyTokenModel.create({
@@ -29,10 +35,22 @@ class KeyTokenService {
 			);
 
 			return tokens ? tokens.publicKey : null;
-
 		} catch (error) {
 			console.error("Error in createKeyToken:", error.message);
 		}
+	};
+
+	static findByUserId = async (userId) => {
+		return await keyTokenModel
+			.findOne({ user: new Types.ObjectId(userId) })
+			.lean();
+	};
+
+	static removeTokenById = async (id) => {
+		const result = await keyTokenModel.deleteOne({
+			_id: new Types.ObjectId(id),
+		});
+		return result;
 	};
 }
 

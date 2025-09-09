@@ -25,6 +25,13 @@ class AccessService {
 		5. get data return login
 
 	*/
+	static logout = async (keyStore) => {
+		console.log("keyStore:", keyStore);
+
+		const delKey = await KeyTokenService.removeTokenById(keyStore._id);
+		console.log("delKey:", delKey);
+		return delKey;
+	};
 	static login = async ({ email, password, refreshToken = null }) => {
 		const foundShop = await findByEmail({ email });
 		if (!foundShop) throw new BadRequestError("Shop not register!");

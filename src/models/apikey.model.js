@@ -1,6 +1,6 @@
-'use strict'
+"use strict";
 
-const mongoose = require('mongoose'); 
+const mongoose = require("mongoose");
 
 const DOCUMENT_NAME = "Apikey";
 const COLLECTION_NAME = "Apikeys";
@@ -18,8 +18,8 @@ var apiKeySchema = new mongoose.Schema(
 		},
 		permissions: {
 			type: [String],
-            require: true,
-            enum: ['0000', '1111','2222']
+			require: true,
+			enum: ["0000", "1111", "2222"],
 		},
 	},
 	{

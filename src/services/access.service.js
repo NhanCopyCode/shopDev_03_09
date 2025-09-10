@@ -89,6 +89,71 @@ class AccessService {
 		};
 	};
 
+	static handleRefreshTokenV2 = async ({ refreshToken, user, keyStore }) => {
+		const { userId, email } = user;
+		console.log("refreshToken", refreshToken);
+		console.log("user", user);
+		console.log("keyStore", keyStore);
+
+		if (keyStore.refreshTokenUsed.includes(refreshToken)) {
+			await KeyTokenService.deleteKeyByUserid(userId);
+
+			throw new ForbiddenError(
+				"Something went wrong! Please, login again"
+			);
+		}
+
+		if (keyStore.refreshToken !== refreshToken) {
+			throw new AuthFailureError("Shop not register 1!");
+		}
+
+		const foundShop = await findByEmail({ email });
+		if (!foundShop) throw new AuthFailureError("Shop not register 2!");
+
+		// Check if token have been reused ?
+		const foundToken = await KeyTokenService.findByRefreshTokenUsed(
+			refreshToken
+		);
+		// if exist token
+		if (foundToken) {
+			// decode token
+			const { userId, email } = await verifyJWT(
+				refreshToken,
+				foundToken.privateKey
+			);
+			console.log("userId and email : ", userId, email);
+
+			// remove all token in keyStore
+			await KeyTokenService.deleteKeyByUserid(userId);
+
+			throw new ForbiddenError(
+				"Something went wrong! Please, login again"
+			);
+		}
+
+		const tokens = await createTokenPair(
+			{ userId, email },
+			keyStore.publicKey,
+			keyStore.privateKey
+		);
+
+		await keyStore.updateOne({
+			$set: {
+				refreshToken: tokens.refreshToken,
+			},
+			$addToSet: {
+				refreshTokenUsed: refreshToken,
+			},
+		});
+
+		return {
+			user: {
+				userId,
+				email,
+			},
+			tokens,
+		};
+	};
 	/*
 		1. Check email in dbs
 		2. Match password 

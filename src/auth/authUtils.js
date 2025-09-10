@@ -8,6 +8,7 @@ const HEADER = {
 	API_KEY: "x-api-key",
 	CLIENT_ID: "x-client-id",
 	AUTHORIZATION: "authorization",
+	REFRESH_TOKEN: "x-rtoken-id",
 };
 
 const createTokenPair = async (payload, publicKey, privateKey) => {
@@ -70,12 +71,50 @@ const authentication = asyncHandler(async (req, res, next) => {
 	}
 });
 
+const authenticationV2 = asyncHandler(async (req, res, next) => {
+	/*
+		1. Check userId missing
+		2. Get access token
+		3. Verify tokens
+		4. Check user in dbs ?
+		5. Check keystore with userId
+		6. All OK -> return next()
+
+	*/
+	const userId = req.headers[HEADER.CLIENT_ID];
+	if (!userId) throw new AuthFailureError("Invalid request");
+
+	const keyStore = await KeyTokenService.findByUserId(userId);
+	
+	if (!keyStore) throw new NotFoundError("Not found keyStore");
+
+	const refreshToken = req.headers[HEADER.REFRESH_TOKEN];
+	if (refreshToken) {
+		try {
+			const decodeUser = JWT.verify(refreshToken, keyStore.privateKey);
+			if (userId !== decodeUser.userId) {
+				throw new AuthFailureError("Invalid user!");
+			}
+
+			req.keyStore = keyStore;
+			req.refreshToken = refreshToken;
+			req.user = decodeUser;
+			return next();
+		} catch (error) {
+			throw error;
+		}
+	}
+
+	
+});
+
 const verifyJWT = async (token, keySecret) => {
 	return await JWT.verify(token, keySecret);
-}
+};
 
 module.exports = {
 	createTokenPair,
 	authentication,
 	verifyJWT,
+	authenticationV2,
 };

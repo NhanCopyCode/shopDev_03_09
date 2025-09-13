@@ -60,7 +60,7 @@ const productSchema = new mongoose.Schema(
 			index: true,
 			select: false,
 		},
-		isPublish: {
+		isPublished: {
 			type: Boolean,
 			default: false,
 			index: true,
@@ -72,6 +72,11 @@ const productSchema = new mongoose.Schema(
 		timestamps: true,
 	}
 );
+// create index for search
+productSchema.index({
+	product_name: 'text',
+	product_description: 'text',
+})
 
 // Document middleware: run before save() or create() ...
 productSchema.pre("save", function (next) {

@@ -4,6 +4,7 @@ const slugify = require("slugify");
 const DOCUMENT_NAME = "Product";
 const COLLECTION_NAME = "Products";
 
+
 // Declare the Schema of the Mongo model
 const productSchema = new mongoose.Schema(
 	{

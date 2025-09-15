@@ -6,7 +6,12 @@ const {
 	furniture,
 	clothing,
 } = require("../product.model");
-const { getSelectData, getUnSelectData } = require("../../utils");
+const {
+	getSelectData,
+	getUnSelectData,
+	removeUndefineObject,
+	updateNestedObjectParser,
+} = require("../../utils");
 
 const findAllDraftsForShop = async ({ query, limit, skip }) => {
 	return await queryProduct({
@@ -64,6 +69,24 @@ const findProduct = async ({ product_id, unSelect }) => {
 		.exec();
 };
 
+const updateProductById = async ({
+	model,
+	product_id,
+	objectParams,
+	isNew = true,
+}) => {
+	console.log('object params: ', objectParams);
+	return await model.findByIdAndUpdate(
+		product_id,
+		{
+			$set: objectParams,
+		},
+		{
+			new: isNew,
+		}
+	);
+};
+
 // this is tips javascript's code findProduct
 // const findProduct = async ({ product_id, unSelect }) => {
 // 	return await product.findById(product_id).select(getUnSelect(unSelect)).lean().exec();
@@ -117,4 +140,5 @@ module.exports = {
 	searchProductByUser,
 	findAllProducts,
 	findProduct,
+	updateProductById,
 };

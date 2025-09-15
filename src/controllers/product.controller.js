@@ -28,6 +28,21 @@ class ProductController {
 		}).send(res);
 	};
 
+	//update prodcut
+	updateProduct = async (req, res, next) => {
+		return new SuccessResponse({
+			message: "Updated product successfully!",
+			metadata: await ProductServiceLv2.updateProduct(
+				req.body.product_type,
+				req.params.productId,
+				{
+					...req.body,
+					product_shop: req.user.userId,
+				}
+			),
+		}).send(res);
+	};
+
 	// PUT
 
 	publishProductByShop = async (req, res, next) => {
@@ -94,7 +109,7 @@ class ProductController {
 		return new SuccessResponse({
 			message: "Get list find Product for shop success!",
 			metadata: await ProductServiceLv2.findProduct({
-				product_id: req.params.product_id
+				product_id: req.params.product_id,
 			}),
 		}).send(res);
 	};

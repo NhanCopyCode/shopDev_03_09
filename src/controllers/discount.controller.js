@@ -13,8 +13,8 @@ class DiscountController {
 			abortEarly: false,
 			stripUnknown: true, // remove unexpected fields
 		});
-		
-		if(error) {
+
+		if (error) {
 			throw new BadRequestError(getJoiErrorMessage(error));
 		}
 		return new SuccessResponse({
@@ -28,92 +28,55 @@ class DiscountController {
 		}).send(res);
 	};
 
-	//update prodcut
-	updateProduct = async (req, res, next) => {
+	updateDiscount = async (req, res, next) => {
 		return new SuccessResponse({
-			message: "Updated product successfully!",
-			metadata: await ProductServiceLv2.updateProduct(
-				req.body.product_type,
-				req.params.productId,
-				{
+			message: "Update discount successfully!",
+			metadata: await DiscountService.updateDiscountCode({
+				discount_id: req.params.id,
+				payload: {
 					...req.body,
-					product_shop: req.user.userId,
-				}
-			),
-		}).send(res);
-	};
-
-	// PUT
-
-	publishProductByShop = async (req, res, next) => {
-		return new SuccessResponse({
-			message: "Published product successfully!",
-			metadata: await ProductServiceLv2.publishProductByShop({
-				product_shop: req.user.userId,
-				product_id: req.params.id,
+					discount_shopId: req.user.userId,
+				},
 			}),
 		}).send(res);
 	};
 
-	unpublishProductByShop = async (req, res, next) => {
+	getAllDiscountCodes = async (req, res, next) => {
 		return new SuccessResponse({
-			message: "Unpublish product successfully!",
-			metadata: await ProductServiceLv2.unpublishProductByShop({
-				product_shop: req.user.userId,
-				product_id: req.params.id,
+			message: "Get all discount code successfully!",
+			metadata: await DiscountService.getAllDiscountCodeByShop({
+				...req.body,
+				shopId: req.user.userId,
 			}),
 		}).send(res);
 	};
 
-	// END PUT
-
-	// Query
-	/**
-	 * @desc Get all Drafts for shop
-	 * @param { Number } limit
-	 * @returns {JSON}
-	 */
-	getAllDraftsForShop = async (req, res, next) => {
+	getDiscountAmount = async (req, res, next) => {
 		return new SuccessResponse({
-			message: "Get list all drafts for shop success!",
-			metadata: await ProductServiceLv2.findAllDraftForShop({
-				product_shop: req.user.userId,
+			message: "Get discount amount successfully!",
+			metadata: await DiscountService.getDiscountAmount({
+				...req.body,
 			}),
 		}).send(res);
 	};
 
-	getAllPublishedForShop = async (req, res, next) => {
+	deleteDiscount = async (req, res, next) => {
 		return new SuccessResponse({
-			message: "Get list all published for shop success!",
-			metadata: await ProductServiceLv2.findAllPublishedForShop({
-				product_shop: req.user.userId,
+			message: "Delete discount successfully!",
+			metadata: await DiscountService.deleteDiscountCode({
+				...req.body,
 			}),
 		}).send(res);
 	};
 
-	getListSearchProduct = async (req, res, next) => {
+	cancelDiscountCode = async (req, res, next) => {
 		return new SuccessResponse({
-			message: "Get list search product for shop success!",
-			metadata: await ProductServiceLv2.searchProduct(req.params),
-		}).send(res);
-	};
-
-	findAllProducts = async (req, res, next) => {
-		return new SuccessResponse({
-			message: "Get list find all Products for shop success!",
-			metadata: await ProductServiceLv2.findAllProducts(req.query),
-		}).send(res);
-	};
-
-	findProduct = async (req, res, next) => {
-		return new SuccessResponse({
-			message: "Get list find Product for shop success!",
-			metadata: await ProductServiceLv2.findProduct({
-				product_id: req.params.product_id,
+			message: "Cancel discount successfully!",
+			metadata: await DiscountService.cancelDiscountCode({
+				...req.body,
 			}),
 		}).send(res);
 	};
-	// End query
 }
 
 module.exports = new DiscountController();

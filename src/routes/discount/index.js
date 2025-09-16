@@ -13,7 +13,7 @@ const discountController = require("../../controllers/discount.controller.js");
 router.use(authenticationV2);
 
 router.post("", asyncHandler(discountController.createDiscount));
-router.patch("/:productId", asyncHandler(productController.updateProduct));
+router.patch("/:id", asyncHandler(discountController.updateDiscount));
 router.post(
 	"/publish/:id",
 	asyncHandler(productController.publishProductByShop)

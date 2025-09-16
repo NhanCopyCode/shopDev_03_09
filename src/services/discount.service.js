@@ -8,6 +8,9 @@ const { findAllProducts } = require("../models/repositories/product.repo");
 const {
 	findAllDiscountCodesSelect,
 	findAllDiscountCodesUnSelect,
+	findDiscount,
+	checkDiscountExist,
+	updateDiscountRepo,
 } = require("../models/repositories/discount.repo");
 
 /*
@@ -43,9 +46,6 @@ class DiscountService {
 		} = payload;
 		console.log("payload:", payload);
 
-		const now = new Date();
-	
-
 		// create index for discount code
 		const foundDiscount = await discountModel
 			.findOne({
@@ -79,7 +79,9 @@ class DiscountService {
 		return newDiscount;
 	}
 
-	static async updateDiscountCode({ discount_id, payload }) {}
+	static async updateDiscountCode({ discount_id, payload }) {
+		return await updateDiscountRepo({ discount_id, payload });
+	}
 
 	// Get all discount available with product
 	static async getAllDiscountCodesWithProduct({
@@ -92,7 +94,7 @@ class DiscountService {
 		// create index for discount_code
 		const foundDiscount = discountModel
 			.findOne({
-				discount_applies_to: code,
+				discount_code: code,
 				discount_shopId: Types.ObjectId(shopId),
 			})
 			.lean();
@@ -145,6 +147,131 @@ class DiscountService {
 		});
 
 		return discounts;
+	}
+
+	/*
+		Apply discount code
+		products = [
+			{
+				productId,
+				shopId,
+				quantity,
+				price,
+				name (optional)
+			},
+			{
+				productId,
+				shopId,
+				quantity,
+				price,
+				name (optional)
+			},
+		]
+	*/
+	static async getDiscountAmount({ code, userId, shopId, products }) {
+		const foundDiscount = await checkDiscountExist(discountModel, {
+			discount_code: code,
+			discount_shopId: new Types.ObjectId(shopId),
+		});
+
+		if (!foundDiscount) throw new NotFoundError("Discount doesn't exist!");
+
+		const {
+			discount_is_active,
+			discount_max_uses,
+			discount_start_date,
+			discount_end_date,
+			discount_min_order_value,
+			discount_max_uses_per_user,
+			discount_users_used,
+			discount_type,
+			discount_value,
+		} = foundDiscount;
+		if (!discount_is_active) throw new NotFoundError("Discount expired!");
+		if (!discount_max_uses) throw new NotFoundError("Discount are out!");
+
+		const now = new Date();
+		if (
+			now < new Date(discount_start_date) ||
+			now > new Date(discount_end_date)
+		) {
+			throw new NotFoundError("Discount expired!");
+		}
+
+		// check xem co set gia tri toi thieu hay khong
+		let totalOrder = 0;
+		if (discount_min_order_value > 0) {
+			totalOrder = products.reduce((acc, product) => {
+				return acc + product.quantity * product.price;
+			}, 0);
+
+			if (totalOrder < discount_min_order_value) {
+				throw new NotFoundError(
+					`Discount require minimum value: ${discount_min_order_value}`
+				);
+			}
+		}
+
+		if (discount_max_uses_per_user > 0) {
+			const userUsedDiscountCount = discount_users_used.filter(
+				(user) => user.userId == userId
+			).length;
+
+			if (userUsedDiscountCount === discount_max_uses_per_user) {
+				throw new NotFoundError("Discount usage limit reached!");
+			}
+		}
+
+		// check discount type is : fixed_amount or percent
+		const amount =
+			discount_type === "fixed_amount"
+				? discount_value
+				: totalOrder * (discount_value / 100);
+
+		return {
+			totalOrder,
+			discount: amount,
+			totalPrice: totalOrder - amount,
+		};
+	}
+
+	static async deleteDiscountCode({ shopId, codeId }) {
+		const deleted = await discountModel.findOneAndDelete({
+			discount_shopId: convertToObjectIdMongoose(shopId),
+			discount_code: codeId,
+		});
+
+		return deleted;
+	}
+
+	/*
+		User cancel discount code
+	*/
+	static async cancelDiscountCode({ shopId, codeId, userId }) {
+		const foundDiscount = await checkDiscountExist({
+			model: discount,
+			filter: {
+				discount_code: codeId,
+				discount_shopId: convertToObjectIdMongoose(shopId),
+			},
+		});
+
+		if (!foundDiscount) throw new NotFoundError("Discount doesn't exist!");
+
+		const result = await discountModel.findByIdAndUpdate(
+			foundDiscount._id,
+			{
+				$pull: {
+					discount_users_used: userId,
+				},
+				$inc: {
+					discount_max_uses: 1,
+					discount_users_used: -1,
+				},
+			}
+		);
+
+		return result;
 	}
 }
 

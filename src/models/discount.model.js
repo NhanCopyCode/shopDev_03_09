@@ -60,12 +60,20 @@ var discountSchema = new mongoose.Schema(
 		discount_applies_to: {
 			type: String,
 			required: true,
-			enum: ["All", "Specify"],
+			enum: ["all", "specific"],
 		},
-		discount_productId: { // san pham duoc ap dung discount
+		discount_productIds: { // san pham duoc ap dung discount
 			type: Array,
 			default: [],
 		},
+        discount_min_order_value: {
+            type: Number,
+            required: true
+        },
+        discount_max_value: {
+            type: Number,
+            required: true,
+        }
 	},
 	{
 		collection: COLLECTION_NAME,

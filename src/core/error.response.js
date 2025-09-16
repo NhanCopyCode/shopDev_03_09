@@ -17,6 +17,7 @@ class ErrorResponse extends Error {
 	}
 }
 
+
 class ConflictError extends ErrorResponse {
 	constructor(
 		message = ReasonStatusCode.CONFLICT,

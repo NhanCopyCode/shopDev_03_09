@@ -43,7 +43,7 @@ const publishProductByShop = async ({ product_shop, product_id }) => {
 	return modifiedCount;
 };
 
-const findAllProducts = async ({ limit, sort, page, filter, select }) => {
+const findAllProducts = async ({ limit = 50, sort = 'ctime', page = 1, filter, select = [] }) => {
 	const skip = (page - 1) * limit;
 	const sortBy = sort === "ctime" ? { _id: -1 } : { _id: 1 };
 	const products = await product

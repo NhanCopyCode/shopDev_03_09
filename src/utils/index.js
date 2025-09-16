@@ -1,6 +1,11 @@
 "use strict";
 
 const _ = require("lodash");
+const { Types } = require("mongoose");
+
+const convertToObjectIdMongoose = (id) => {
+	return new Types.ObjectId(id);
+}
 
 const getInfoData = ({ fields = [], object = {} }) => {
 	return _.pick(object, fields);
@@ -14,27 +19,6 @@ const getUnSelectData = (select = []) => {
 	return Object.fromEntries(select.map((el) => [el, 0]));
 };
 
-// const removeUndefineObject = (object) => {
-// 	console.log("object before remove: ", object);
-
-// 	Object.keys(object).forEach((key) => {
-// 		const value = object[key];
-
-// 		if (value === null || value === undefined) {
-// 			delete object[key];
-// 		}
-
-// 		else if (typeof value === "object" && !Array.isArray(value)) {
-// 			object[key] = removeUndefineObject(value); // recursion
-// 			if (Object.keys(object[key]).length === 0) {
-// 				delete object[key];
-// 			}
-// 		}
-// 	});
-
-// 	console.log("object after remove: ", object);
-// 	return object;
-// };
 
 const removeUndefineObject = (obj) => {
 	Object.keys(obj).forEach((key) => {
@@ -70,10 +54,16 @@ const updateNestedObjectParser = (obj) => {
 	return final;
 };
 
+const getJoiErrorMessage = (error) => {
+	return error.details.map(err => err.message);
+}
+
 module.exports = {
 	getInfoData,
 	getSelectData,
 	getUnSelectData,
 	removeUndefineObject,
 	updateNestedObjectParser,
+	convertToObjectIdMongoose,
+	getJoiErrorMessage,
 };

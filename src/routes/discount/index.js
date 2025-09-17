@@ -7,27 +7,15 @@ const asyncHandler = require("../../helpers/asyncHandler.js");
 const { authentication, authenticationV2 } = require("../../auth/authUtils.js");
 const discountController = require("../../controllers/discount.controller.js");
 
+router.post("/amount", asyncHandler(discountController.getDiscountAmount));
+router.get("/list_product_codes", asyncHandler(discountController.getAllDiscountCodesWithProducts));
 
 
 //authentication
 router.use(authenticationV2);
 
 router.post("", asyncHandler(discountController.createDiscount));
+router.get("", asyncHandler(discountController.getAllDiscountCodes));
 router.patch("/:id", asyncHandler(discountController.updateDiscount));
-router.post(
-	"/publish/:id",
-	asyncHandler(productController.publishProductByShop)
-);
-router.post(
-	"/unpublish/:id",
-	asyncHandler(productController.unpublishProductByShop)
-);
-
-// Query
-router.get("/drafts/all", asyncHandler(productController.getAllDraftsForShop));
-router.get(
-	"/publish/all",
-	asyncHandler(productController.getAllPublishedForShop)
-);
 
 module.exports = router;

@@ -91,11 +91,13 @@ class DiscountService {
 		limit,
 		page,
 	}) {
+		console.log("code: ", code);
+		console.log("shopId: ", shopId);
 		// create index for discount_code
-		const foundDiscount = discountModel
+		const foundDiscount = await discountModel
 			.findOne({
 				discount_code: code,
-				discount_shopId: Types.ObjectId(shopId),
+				discount_shopId: convertToObjectIdMongoose(shopId),
 			})
 			.lean();
 
@@ -131,18 +133,21 @@ class DiscountService {
 				select: ["product_name"],
 			});
 		}
+
+		console.log("products in discount service:", products);
+		return products;
 	}
 
 	// get all discount code of shop
 	static async getAllDiscountCodeByShop({ limit, page, shopId }) {
-		const discounts = await findAllDiscountCodesUnSelect({
+		const discounts = await findAllDiscountCodesSelect({
 			limit: +limit,
 			page: +page,
 			filter: {
 				discount_shopId: convertToObjectIdMongoose(shopId),
 				discount_is_active: true,
 			},
-			unSelect: ["__v", "discount_shopId"],
+			select: ["discount_code", "discount_name", "discount description"],
 			model: discountModel,
 		});
 

@@ -45,7 +45,7 @@ class DiscountController {
 		return new SuccessResponse({
 			message: "Get all discount code successfully!",
 			metadata: await DiscountService.getAllDiscountCodeByShop({
-				...req.body,
+				...req.query,
 				shopId: req.user.userId,
 			}),
 		}).send(res);
@@ -60,10 +60,20 @@ class DiscountController {
 		}).send(res);
 	};
 
+	getAllDiscountCodesWithProducts = async (req, res, next) => {
+		return new SuccessResponse({
+			message: "Get discount amount successfully!",
+			metadata: await DiscountService.getAllDiscountCodesWithProduct({
+				...req.query,
+			}),
+		}).send(res);
+	};
+
 	deleteDiscount = async (req, res, next) => {
 		return new SuccessResponse({
 			message: "Delete discount successfully!",
 			metadata: await DiscountService.deleteDiscountCode({
+				shopId: req.user.userId,
 				...req.body,
 			}),
 		}).send(res);
@@ -73,6 +83,8 @@ class DiscountController {
 		return new SuccessResponse({
 			message: "Cancel discount successfully!",
 			metadata: await DiscountService.cancelDiscountCode({
+				shopId: req.user.userId,
+
 				...req.body,
 			}),
 		}).send(res);

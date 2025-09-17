@@ -85,7 +85,6 @@ const authenticationV2 = asyncHandler(async (req, res, next) => {
 	if (!userId) throw new AuthFailureError("Invalid request");
 
 	const keyStore = await KeyTokenService.findByUserId(userId);
-	
 	if (!keyStore) throw new NotFoundError("Not found keyStore");
 
 	const refreshToken = req.headers[HEADER.REFRESH_TOKEN];
